@@ -72,26 +72,6 @@
     NSString *den_python_pub_pem_using_pri_pem = [RSAM2 decryptString:ENC_BY_PUB_PYTHON privateKeyString:private_pem_contents];
     NSLog(@"使用pem私钥解密python pem公钥加密的密文:\n%@", den_python_pub_pem_using_pri_pem);
     
-    // 使用cer公钥解密.p12私钥加密的密文
-    NSString *den_pri_p12_using_pub_cer = [RSAM2 decryptString:enc_by_p12_pri publicKeyWithContentsOfFile:public_der_path];
-    NSLog(@"使用cer公钥解密.p12私钥加密的密文:\n%@", den_pri_p12_using_pub_cer);
-    // 使用cer公钥解密pem私钥加密的密文
-    NSString *den_pri_pem_using_pub_cer = [RSAM2 decryptString:enc_by_pem_pri publicKeyWithContentsOfFile:public_der_path];
-    NSLog(@"使用cer公钥解密pem私钥加密的密文:\n%@", den_pri_pem_using_pub_cer);
-    // 使用cer公钥解密python pem私钥加密的密文
-    NSString *den_python_pri_pem_using_pub_cer = [RSAM2 decryptString:ENC_BY_PRI_PYTHON publicKeyWithContentsOfFile:public_der_path];
-    NSLog(@"使用cer公钥解密python pem私钥加密的密文:\n%@", den_python_pri_pem_using_pub_cer);
-    
-    // 使用pem公钥解密.p12私钥加密的密文
-    NSString *den_pri_p12_using_pub_pem = [RSAM2 decryptString:enc_by_p12_pri publicKeyString:public_pem_contents];
-    NSLog(@"使用pem公钥解密.p12私钥加密的密文:\n%@", den_pri_p12_using_pub_pem);
-    // 使用pem公钥解密pem私钥加密的密文
-    NSString *den_pri_pem_using_pub_pem = [RSAM2 decryptString:enc_by_pem_pri publicKeyString:public_pem_contents];
-    NSLog(@"使用pem公钥解密pem私钥加密的密文:\n%@", den_pri_pem_using_pub_pem);
-    // 使用pem公钥解密python pem私钥加密的密文
-    NSString *den_python_pri_pem_using_pub_pem = [RSAM2 decryptString:ENC_BY_PRI_PYTHON publicKeyString:public_pem_contents];
-    NSLog(@"使用pem公钥解密python pem私钥加密的密文:\n%@", den_python_pri_pem_using_pub_pem);
-    
     
 //    NSLog(@"private_p12_path:%@",private_p12_path);
 //    NSLog(@"public_der_path:%@",public_der_path);

@@ -43,6 +43,37 @@ static NSData *base64_decode(NSString *str){
     return base64_encode_data(signedData);
 }
 
+#pragma mark - 使用'.p12'私钥签名
++ (NSString *)signString:(NSString *)str privateWithContentsOfFile:(NSString *)path password:(NSString *)password
+{
+    if (!str || !path) return nil;
+    NSData* signedData = [self signatureData:[str dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:[self getPrivateKeyRefWithContentsOfFile:path password:password]];
+    return  base64_encode_data(signedData);
+}
+
+#pragma mark - 使用'.der'公钥签名
++ (NSString *)signString:(NSString *)str publicWithContentsOfFile:(NSString *)path
+{
+    if (!str || !path) return nil;
+    NSData* signedData = [self signatureData:[str dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:[self getPublicKeyRefWithContentsOfFile:path]];
+    return  base64_encode_data(signedData);
+}
+
+#pragma mark -使用pem格式的秘钥对数据进行签名
++ (NSString *)signString:(NSString *)str pemKeyContents:(NSString *)keyContens isPrivate:(BOOL)isPrivate
+{
+    if (!str || !keyContens) return nil;
+    SecKeyRef keyRef;
+    if (isPrivate) {
+        keyRef = [self addPKCS8PrivateKey:keyContens];
+    }else{
+        keyRef = [self addPublicKey:keyContens];
+    }
+    
+    NSData *data = [self signatureData:[str dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:keyRef];
+    return base64_encode_data(data);
+}
+
 #pragma mark - 使用'.p12'私钥文件加密
 + (NSString *)encryptString:(NSString *)str privateWithContentsOfFile:(NSString *)path password:(NSString *)password
 {
@@ -71,6 +102,29 @@ static NSData *base64_decode(NSString *str){
      if (!origin || !signature  || !path) return NO;
     return [self verifyData:[origin dataUsingEncoding:NSUTF8StringEncoding] andSignatureData:base64_decode(signature) andKeyRef:[self getPublicKeyRefWithContentsOfFile:path] withAlgp:algorithm];
 }
+
++ (BOOL)verifyString:(NSString *)origin andSignature:(NSString *)signature publicKeyWithContentsOfFile:(NSString *)path
+{
+    BOOL result = NO;
+    result = [self verifyData:base64_decode(signature) andSignature:[origin dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:[self getPublicKeyRefWithContentsOfFile:path]];
+    return  result;
+}
+
++ (BOOL)verifyString:(NSString *)origin andSignature:(NSString *)signature privateKeyWithContentsOfFile:(NSString *)path password:(NSString *)password
+{
+    return [self verifyData:base64_decode(signature) andSignature:[origin dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:[self getPrivateKeyRefWithContentsOfFile:path password:password]];
+}
++ (BOOL)verifyString:(NSString *)origin andSignature:(NSString *)signature pemKeyContents:(NSString *)keyContens isPrivate:(BOOL)isPrivate
+{
+    SecKeyRef keyRef;
+    if (isPrivate) {
+        keyRef = [self addPKCS8PrivateKey:keyContens];
+    }else{
+        keyRef = [self addPublicKey:keyContens];
+    }
+    return [self verifyData:base64_decode(signature) andSignature:[origin dataUsingEncoding:NSUTF8StringEncoding] withKeyRef:keyRef];
+}
+
 #pragma mark - 使用公钥文件解密
 + (NSString *)decryptString:(NSString *)str publicKeyWithContentsOfFile:(NSString *)path
 {
@@ -339,6 +393,104 @@ static NSData *base64_decode(NSString *str){
         NSLog(@"验证私钥签名失败：%@", err.localizedDescription);
     }
     return result;
+}
+
+#pragma mark - 使用秘钥验证数据
++ (BOOL)verifyData:(NSData *)data andSignature:(NSData *)signature withKeyRef:(SecKeyRef)keyRef
+{
+    OSStatus status = noErr;
+    status = SecKeyRawVerify(keyRef,
+                             kSecPaddingPKCS1,
+                             (const uint8_t *)[data bytes],
+                             (size_t)[data length],
+                             (const uint8_t *)[signature bytes],
+                             (size_t)[signature length]);
+    if (status != 0){
+        NSLog(@"验证失败，错误代码: %d", status);
+        return NO;
+    }else{
+        return YES;
+    }
+//    const uint8_t *srcbuf = (const uint8_t *)[data bytes];
+//    size_t srclen = (size_t)data.length;
+//
+//    size_t block_size = SecKeyGetBlockSize(keyRef) * sizeof(uint8_t);
+//    void *outbuf = malloc(block_size);
+//    size_t src_block_size = block_size - 11;
+//
+//    NSMutableData *ret = [[NSMutableData alloc] init];
+//    for(int idx=0; idx<srclen; idx+=src_block_size){
+//        //NSLog(@"%d/%d block_size: %d", idx, (int)srclen, (int)block_size);
+//        size_t data_len = srclen - idx;
+//        if(data_len > src_block_size){
+//            data_len = src_block_size;
+//        }
+//
+//
+//        size_t outlen = block_size;
+//        OSStatus status = noErr;
+//
+//        status = SecKeyRawSign(keyRef,
+//                               kSecPaddingPKCS1,
+//                               srcbuf + idx,
+//                               data_len,
+//                               outbuf,
+//                               &outlen
+//                               );
+//        if (status != 0) {
+//            NSLog(@"签名失败，错误代码: %d", status);
+//            ret = nil;
+//            break;
+//        }else{
+//            [ret appendBytes:outbuf length:outlen];
+//        }
+//    }
+//
+//    free(outbuf);
+//    CFRelease(keyRef);
+//    return ret;
+}
+
+#pragma mark - 使用秘钥签名数据
++ (NSData *)signatureData:(NSData *)data withKeyRef:(SecKeyRef)keyRef
+{
+    const uint8_t *srcbuf = (const uint8_t *)[data bytes];
+    size_t srclen = (size_t)data.length;
+    
+    size_t block_size = SecKeyGetBlockSize(keyRef) * sizeof(uint8_t);
+    void *outbuf = malloc(block_size);
+    size_t src_block_size = block_size - 11;
+    
+    NSMutableData *ret = [[NSMutableData alloc] init];
+    for(int idx=0; idx<srclen; idx+=src_block_size){
+        //NSLog(@"%d/%d block_size: %d", idx, (int)srclen, (int)block_size);
+        size_t data_len = srclen - idx;
+        if(data_len > src_block_size){
+            data_len = src_block_size;
+        }
+        
+        size_t outlen = block_size;
+        OSStatus status = noErr;
+        
+        status = SecKeyRawSign(keyRef,
+                                   kSecPaddingPKCS1,
+                                   srcbuf + idx,
+                                   data_len,
+                                   outbuf,
+                                   &outlen
+                                   );
+        if (status != 0) {
+            NSLog(@"签名失败，错误代码: %d", status);
+            ret = nil;
+            break;
+        }else{
+            [ret appendBytes:outbuf length:outlen];
+        }
+    }
+    
+    free(outbuf);
+    CFRelease(keyRef);
+    return ret;
 }
 
 + (NSData *)encryptData:(NSData *)data withKeyRef:(SecKeyRef) keyRef isSign:(BOOL)isSign {
