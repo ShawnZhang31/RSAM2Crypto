@@ -42,7 +42,7 @@ Python/
 ```Objective-C
 #import <RSAM2Crypto/RSAM2.h>
 ```
-RSAM2.h第一的主要方法是:
+RSAM2.h定义的主要方法是:
 ```Objective-C
 /**
  * 使用.der格式的公钥对字符字符串进行加密
