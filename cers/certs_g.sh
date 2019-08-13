@@ -49,7 +49,7 @@ echo "---start:生成供Android使用的私钥Android_private_key.pem..."
 openssl pkcs8 -topk8 -in private_key.pem -out Android_private_key.pem -nocrypt
 echo "生成供Android使用的公钥Android_private_key.pem---end"
 
-echo "清楚中间文件..."
+echo "删除中间文件..."
 rm -rf rsaCerReq.csr
 rm -rf rsaCert.crt
 echo "所有平台的证书生成完毕"
