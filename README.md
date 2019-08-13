@@ -36,7 +36,7 @@ Python/
 ```
 ## 2.安装
 ### 2.1 RSAM2Crypto.framework的配置
-在release中下载发布的[RSAM2Crypto.framework.zip](https://github.com/ShawnZhang31/RSAM2Crypto/releases/download/v1.1/RSAM2Crypto.framework.zip),解压获取RSAM2Crypto,.framework,或者clone工程在自行编译RSAM2Crypto.framework。在工程的Link Binary With Libraries中添加RSAM2Crypto.framework和Security.framwork即可。
+在release中下载发布的[RSAM2Crypto.framework.zip](https://github.com/ShawnZhang31/RSAM2Crypto/releases/download/v1.2/RSAM2Crypto.framework.zip),解压获取RSAM2Crypto,.framework,或者clone工程在自行编译RSAM2Crypto.framework。在工程的Link Binary With Libraries中添加RSAM2Crypto.framework和Security.framwork即可。
 ### 2.2 RSAM2Crypto.framework的方法说明
 在需要使用的RSAM2Crypto.framework的地方插入:
 ```Objective-C
@@ -252,6 +252,10 @@ openssl genrsa -out private_key.pem 2048
 该方法生个的私钥大小为2048字节，一个字符位8个字节，所以理论上讲加密的字符串的字符个数不能超过2048÷8=256个字符，不过RSAM2Crypto.framework在加密的中使用了PKCS1的补位算法，PKCS1占用了11个字符，所以要加密的字符长度不能超过256-11=245个字符。**如果超过了请将长字符分段加密，再拼接在一起。**
 
 ## 更新说明
+- 2019-08-14
+    - RSAM2Crypto.framework v1.2版本
+    - 修改的版本问题
+    - 优化了加密效率
 - 2019-08-13
     - RSAM2Crypto.framework v1.1版本
     - 支持公钥加密字符串、私钥解密；私钥加密，公钥解密；
