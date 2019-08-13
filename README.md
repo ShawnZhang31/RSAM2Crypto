@@ -4,6 +4,8 @@
 iOS一般是使用p12格式的私钥的，iOS的RSA加密与解密主要是使用Security.framework提供的实现完成的。不过iOS官方给出的加密方案只能公钥加密私钥解密，私钥不能用于加密，私钥只能签名，使用公钥验证签名。而在在某些应用场景下也是需要使用私钥加密公钥解密。为此对Security.framwork的RSA的实现进行了重新封装并实现了:  
 **iOS公钥加密私钥解密，私钥加密公钥解密，同时支持der公钥、p12私钥、pkcs1和pkcs5格式的pem密钥，该方案生成的证书只是python、java和php的调用**
 
+<!-- TOC -->autoauto- [RSAM2Crypto](#rsam2crypto)auto    - [1.工程目录](#1工程目录)auto    - [2.安装](#2安装)auto        - [2.1 RSAM2Crypto.framework的配置](#21-rsam2cryptoframework的配置)auto        - [2.2 RSAM2Crypto.framework的方法说明](#22-rsam2cryptoframework的方法说明)auto        - [2.3 RSAM2Crypt.framework使用实例](#23-rsam2cryptframework使用实例)auto    - [3. 证书的生成](#3-证书的生成)auto        - [3.1 生成证书的脚本解释](#31-生成证书的脚本解释)auto        - [3.2 秘钥加密的字符串长度限制](#32-秘钥加密的字符串长度限制)auto    - [更新说明](#更新说明)autoauto<!-- /TOC -->
+
 ## 1.工程目录
 ```
 cers/
